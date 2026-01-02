@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Mac
+.DS_Store
+
+# Secrets
+*.key
+*.pem
+
+# logs
+logs/
+*.log
+
+# for virtual environment 
+venv/
