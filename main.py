@@ -183,78 +183,78 @@ from utils.token_manager import TokenManager
 # if __name__ == "__main__":
 #     main()
 #----------------------------------------------------- FINDING GAP BETWEEN SMA AND CLOSE PRICE
-import time
-from data.angel_interface import AngelOneProvider
-from core.analysis import ImpactZoneAnalyzer
-from strategies.scanner import NiftyScanner
-from utils.token_manager import TokenManager
+# import time
+# from data.angel_interface import AngelOneProvider
+# from core.analysis import ImpactZoneAnalyzer
+# from strategies.scanner import NiftyScanner
+# from utils.token_manager import TokenManager
 
 
-def main():
-    print("🤖 Market Scanner Bot Started...")
+# def main():
+#     print("🤖 Market Scanner Bot Started...")
     
-    # 1. Login
-    provider = AngelOneProvider(API_KEY, CLIENT_ID, PASSWORD, TOTP_KEY)
+#     # 1. Login
+#     provider = AngelOneProvider(API_KEY, CLIENT_ID, PASSWORD, TOTP_KEY)
     
-    if hasattr(provider, 'auth_token'):
+#     if hasattr(provider, 'auth_token'):
         
-        # 2. Get Stocks 
-        stock_map, cat_map = TokenManager.get_market_categories()
+#         # 2. Get Stocks 
+#         stock_map, cat_map = TokenManager.get_market_categories()
         
-        scanner = NiftyScanner(provider)
-        matches = []
+#         scanner = NiftyScanner(provider)
+#         matches = []
         
-        print(f"🚀 Starting Scan on {len(stock_map)} stocks...")
-        print("Press Ctrl+C to stop scanning anytime.\n")
+#         print(f"🚀 Starting Scan on {len(stock_map)} stocks...")
+#         print("Press Ctrl+C to stop scanning anytime.\n")
         
-        count = 0
-        try:
-            for token, symbol in stock_map.items():
-                count += 1
-                clean_name = symbol.replace('-EQ', '')
+#         count = 0
+#         try:
+#             for token, symbol in stock_map.items():
+#                 count += 1
+#                 clean_name = symbol.replace('-EQ', '')
                 
-                print(f"[{count}/{len(stock_map)}] Scanning {clean_name}...", end="\r")
+#                 print(f"[{count}/{len(stock_map)}] Scanning {clean_name}...", end="\r")
                 
-                try:
-                    # Run scanner (Now includes SMA logic)
-                    result = scanner.scan_stock(token, clean_name)
+#                 try:
+#                     # Run scanner (Now includes SMA logic)
+#                     result = scanner.scan_stock(token, clean_name)
                     
-                    if result:
-                        # Add Indices info for display
-                        indices = ", ".join(cat_map.get(clean_name, []))
-                        result['indices'] = indices
+#                     if result:
+#                         # Add Indices info for display
+#                         indices = ", ".join(cat_map.get(clean_name, []))
+#                         result['indices'] = indices
                         
-                        matches.append(result)
+#                         matches.append(result)
                         
-                        # 🟢 PRINT SMA GAP LIVE
-                        print(f"\n✨ FOUND: {clean_name} | RSI: {result['daily_rsi']} | SMA Gap: {result['sma_gap']}%")
+#                         # 🟢 PRINT SMA GAP LIVE
+#                         print(f"\n✨ FOUND: {clean_name} | RSI: {result['daily_rsi']} | SMA Gap: {result['sma_gap']}%")
                         
-                    # Rate Limit
-                    time.sleep(0.35) 
+#                     # Rate Limit
+#                     time.sleep(0.35) 
                     
-                except Exception as e:
-                    continue
+#                 except Exception as e:
+#                     continue
                     
-        except KeyboardInterrupt:
-            print("\n🛑 Scan Stopped by User.")
+#         except KeyboardInterrupt:
+#             print("\n🛑 Scan Stopped by User.")
 
-        # 3. Final Report
-        print("\n" + "="*90)
-        print(f"SCAN REPORT: Found {len(matches)} stocks")
-        print("="*90)
+#         # 3. Final Report
+#         print("\n" + "="*90)
+#         print(f"SCAN REPORT: Found {len(matches)} stocks")
+#         print("="*90)
         
-        # 🟢 UPDATED COLUMNS
-        print(f"{'SYMBOL':<15} {'RSI(D)':<8} {'PRICE':<10} {'20 SMA':<10} {'GAP %':<10} {'INDICES'}")
-        print("-" * 90)
+#         # 🟢 UPDATED COLUMNS
+#         print(f"{'SYMBOL':<15} {'RSI(D)':<8} {'PRICE':<10} {'20 SMA':<10} {'GAP %':<10} {'INDICES'}")
+#         print("-" * 90)
         
-        for m in matches:
-            # Color code the gap: Far (>5%) vs Near (<5%)
-            gap_str = f"{m['sma_gap']}%"
+#         for m in matches:
+#             # Color code the gap: Far (>5%) vs Near (<5%)
+#             gap_str = f"{m['sma_gap']}%"
             
-            print(f"{m['symbol']:<15} {m['daily_rsi']:<8} {m['price']:<10} {m['sma_20']:<10} {gap_str:<10} {m['indices']}")
+#             print(f"{m['symbol']:<15} {m['daily_rsi']:<8} {m['price']:<10} {m['sma_20']:<10} {gap_str:<10} {m['indices']}")
 
-    else:
-        print("Login Failed.")
+#     else:
+#         print("Login Failed.")
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

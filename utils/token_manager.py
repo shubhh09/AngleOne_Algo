@@ -71,12 +71,14 @@ class TokenManager:
     # Save your downloaded CSVs in the 'data' folder with these names:
     LOCAL_FILES = {
         "NIFTY 50": "data/ind_nifty50list.csv",
+        "NIFTY 200": "data/ind_nifty200list.csv",
         "NIFTY 500": "data/ind_nifty500list.csv"
     }
 
     # 3. Online URLs (Backup if local file is missing)
     ONLINE_URLS = {
         "NIFTY 50": "https://www.niftyindices.com/IndexConstituent/ind_nifty50list.csv",
+        "NIFTY 200": "https://www.niftyindices.com/IndexConstituent/ind_nifty200list.csv",
         "NIFTY 500": "https://www.niftyindices.com/IndexConstituent/ind_nifty500list.csv"
     }
 
