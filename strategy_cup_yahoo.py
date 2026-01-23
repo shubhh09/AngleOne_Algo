@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 from utils.token_manager import TokenManager
 from colorama import Fore, Style, init
 
+# <--- NEW: Import your Telegram Bot --->
+from telegram.telegram_alert import TelegramBot
+
 # Initialize colors
 init(autoreset=True)
 
@@ -16,6 +19,9 @@ class FullMarketScanner:
         self.cache_dir = "data/cache"
         self.results_file = "cup_patterns_found_yahoo.csv"
         
+        # <--- NEW: Initialize Bot --->
+        self.bot = TelegramBot()
+
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
 
@@ -204,6 +210,55 @@ class FullMarketScanner:
             print(f"📂 Data saved to '{self.results_file}'")
             print("="*60)
             print(results_df.head(10).to_string()) # Show preview
+
+        # ... (Existing code above) ...
+            
+            # --- IMPROVED TELEGRAM REPORT (Grouped) ---
+            print(f"\n📤 Sending Detailed Report to Telegram...")
+            
+            # 1. SEPARATE THE LISTS
+            # Filter rows containing "BREAKOUT"
+            breakouts = results_df[results_df['Status'].str.contains("BREAKOUT")]
+            # Filter rows NOT containing "BREAKOUT" (Handles/Near)
+            watchlist = results_df[~results_df['Status'].str.contains("BREAKOUT")]
+
+            # --- MESSAGE 1: BREAKOUTS (Actionable) ---
+            if not breakouts.empty:
+                msg = f"🚀 **BREAKOUT ALERT** ({len(breakouts)} Stocks)\n"
+                msg += "Strategy: Cup Pattern (>5 Yr)\n\n"
+                msg += "```\n"
+                # Showing TARGET for breakouts
+                msg += f"{'SYMBOL':<10} {'PRICE':<8} {'TARGET':<8}\n"
+                msg += "-"*28 + "\n"
+                
+                for _, row in breakouts.iterrows():
+                     # Format Target to remove decimal if clean
+                     tgt = f"{row['Target_High']:.1f}"
+                     msg += f"{row['Symbol'][:10]:<10} {row['Current_Price']:<8} {tgt:<8}\n"
+                msg += "```"
+                self.bot.send_msg(msg)
+
+            # --- MESSAGE 2: WATCHLIST (Forming) ---
+            if not watchlist.empty:
+                msg = f"👀 **WATCHLIST (Forming)** ({len(watchlist)} Stocks)\n"
+                msg += "Status: Cup/Handle Forming\n\n"
+                msg += "```\n"
+                # Showing DISTANCE % for watchlist (How far to breakout)
+                msg += f"{'SYMBOL':<10} {'PRICE':<8} {'DIST%':<6}\n"
+                msg += "-"*26 + "\n"
+                
+                # Limit to top 20 to avoid spamming
+                for _, row in watchlist.head(20).iterrows():
+                     dist = f"{row['Distance_Pct']}%"
+                     msg += f"{row['Symbol'][:10]:<10} {row['Current_Price']:<8} {dist:<6}\n"
+                
+                if len(watchlist) > 20:
+                    msg += f"... +{len(watchlist)-20} more in CSV"
+                msg += "```"
+                self.bot.send_msg(msg)
+            
+            print("✅ Telegram Messages Sent.")
+            
         else:
             print("❌ Scan Complete. No patterns found matching strict criteria.")
 

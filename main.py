@@ -8,7 +8,10 @@ import pandas as pd
 from dotenv import load_dotenv
 import os
 
+# for sending telegram message bot 
+from telegram.telegram_alert import TelegramBot
 load_dotenv()
+
 # REPLACE THESE WITH YOUR ACTUAL DETAILS
 API_KEY = os.getenv("API_KEY")
 CLIENT_ID = os.getenv("CLIENT_ID")
@@ -192,7 +195,7 @@ from utils.token_manager import TokenManager
 
 def main():
     print("🤖 Market Scanner Bot Started...")
-    
+    bot = TelegramBot() 
     # 1. Login
     provider = AngelOneProvider(API_KEY, CLIENT_ID, PASSWORD, TOTP_KEY)
     
@@ -247,12 +250,41 @@ def main():
         print(f"{'SYMBOL':<15} {'RSI(D)':<8} {'PRICE':<10} {'20 SMA':<10} {'GAP %':<10} {'INDICES'}")
         print("-" * 90)
         
-        for m in matches:
-            # Color code the gap: Far (>5%) vs Near (<5%)
-            gap_str = f"{m['sma_gap']}%"
+        # --- BUILD TELEGRAM MESSAGE ---
+        if matches:
+            # Start the message with a Header
+            tg_msg = f"📊 **GFS SCAN REPORT** ({len(matches)} Stocks)\n\n"
+            tg_msg += "```\n"  # Start Code Block (Monospaced font)
             
-            print(f"{m['symbol']:<15} {m['daily_rsi']:<8} {m['price']:<10} {m['sma_20']:<10} {gap_str:<10} {m['indices']}")
+            # Add Table Header (Compact for Mobile)
+            # SYM=Symbol, P=Price, G%=Gap%
+            tg_msg += f"{'SYMBOL':<10} {'RSI':<4} {'PRICE':<8} {'G%':<4}\n"
+            tg_msg += "-"*30 + "\n"
 
+            # Print Console Header (Your original wide format)
+            print(f"{'SYMBOL':<15} {'RSI(D)':<8} {'PRICE':<10} {'20 SMA':<10} {'GAP %':<10} {'INDICES'}")
+            print("-" * 90)
+            
+            for m in matches:
+                gap_str = f"{m['sma_gap']}"
+                
+                # 1. Print full details to Computer Console
+                print(f"{m['symbol']:<15} {m['daily_rsi']:<8} {m['price']:<10} {m['sma_20']:<10} {gap_str:<10} {m['indices']}")
+                
+                # 2. Add compact details to Telegram Message
+                # We truncate symbol to 10 chars to prevent wrapping on phone
+                sym_short = m['symbol'][:10] 
+                tg_msg += f"{sym_short:<10} {m['daily_rsi']:<4} {m['price']:<8} {gap_str:<4}\n"
+
+            tg_msg += "```" # End Code Block
+            
+            # --- SEND TO TELEGRAM ---
+            print(f"\n📤 Sending List to Telegram...")
+            bot.send_msg(tg_msg)
+            
+        else:
+            print("No stocks found.")
+            bot.send_msg("⚠️ **GFS Scan:** No stocks found today.")
     else:
         print("Login Failed.")
 
